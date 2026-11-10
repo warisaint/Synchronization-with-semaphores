@@ -22,31 +22,31 @@ union semun{
 };
 
 void f1(int s1, int s2) {
-    //if(child) {
-        if (!semaphore_p(s1)) exit(EXIT_FAILURE);  // lock
-        f2(s1,s2);
-        if (!semaphore_v(s1)) exit(EXIT_FAILURE);  // unlock        
-    //}
     
+        if (!semaphore_p(s1)) exit(EXIT_FAILURE);  // lock
+        sleep(10);
+        if(child) f2(s1,s2);
+        if (!semaphore_v(s1)) exit(EXIT_FAILURE);  // unlock        
+
 }
 
 void f2(int s1, int s2) {
-    //if(!child) {
+    
         if (!semaphore_p(s2)) exit(EXIT_FAILURE);  // lock
-        f1(s1,s2);
+        sleep(10);
+        if(!child) f1(s1,s2);
         if (!semaphore_v(s2)) exit(EXIT_FAILURE);  // unlock        
-    //}
     
 }
 
 int main(int argc, char *argv[]) {
-  int child;
   int s1 = semget((key_t)1234, 1, 0666 | IPC_CREAT);  // get semaphore id
   int s2 = semget((key_t)1235, 1, 0666 | IPC_CREAT);  // get semaphore id 
 
   set_semvalue(s1);
   set_semvalue(s2);
 
+  int child;
   child = fork();
 
   if(child) {
@@ -55,6 +55,9 @@ int main(int argc, char *argv[]) {
     f2(s2,s1);
   }
   printf("\n%d - Doned\n", getpid());
+  if(child) {
+    wait(NULL);
+  }
 
   del_semvalue(s1); // delete or remove semaphore
   del_semvalue(s2);
