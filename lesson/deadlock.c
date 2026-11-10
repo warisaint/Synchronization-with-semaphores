@@ -57,10 +57,9 @@ int main(int argc, char *argv[]) {
   printf("\n%d - Doned\n", getpid());
   if(child) {
     wait(NULL);
+    del_semvalue(s1); // delete or remove semaphore
+    del_semvalue(s2);
   }
-
-  del_semvalue(s1); // delete or remove semaphore
-  del_semvalue(s2);
 }
 
 /* The function set_semvalue initializes the semaphore using the SETVAL command in a semctl call. We need to do this before we can use the semaphore. */
