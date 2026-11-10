@@ -21,6 +21,24 @@ union semun{
   unsigned short *array;
 };
 
+void f1(int s1, int s2) {
+    //if(child) {
+        if (!semaphore_p(s1)) exit(EXIT_FAILURE);  // lock
+        f2(s1,s2);
+        if (!semaphore_v(s1)) exit(EXIT_FAILURE);  // unlock        
+    //}
+    
+}
+
+void f2(int s1, int s2) {
+    //if(!child) {
+        if (!semaphore_p(s2)) exit(EXIT_FAILURE);  // lock
+        f1(s1,s2);
+        if (!semaphore_v(s2)) exit(EXIT_FAILURE);  // unlock        
+    //}
+    
+}
+
 int main(int argc, char *argv[]) {
   int child;
   int s1 = semget((key_t)1234, 1, 0666 | IPC_CREAT);  // get semaphore id
@@ -86,20 +104,3 @@ static int semaphore_v(int sem_id) {
   return (1);
 }
 
-void f1(int s1, int s2) {
-    if(child) {
-        //if (!semaphore_p(s1)) exit(EXIT_FAILURE);  // lock
-        f2(s1,s2);
-        //if (!semaphore_v(s1)) exit(EXIT_FAILURE);  // unlock        
-    }
-    
-}
-
-void f2(int s1, int s2) {
-    if(!child) {
-        //if (!semaphore_p(s2)) exit(EXIT_FAILURE);  // lock
-        f1(s1,s2);
-        //if (!semaphore_v(s2)) exit(EXIT_FAILURE);  // unlock        
-    }
-    
-}
