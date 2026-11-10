@@ -1,6 +1,6 @@
 //Deadlock Assignment
-/* After the #includes, the function prototypes and the global variable, we come to the main function. There the semaphore is created with a call to semget, which returns the semaphore ID. If the program is the rst to be called (i.e. it's called with a parameter and argc > 1), a call is made to set_semvalue to initialize the semaphore and op_char is set to X. [./sem & ./sem1]*/
 
+/* After the #includes, the function prototypes and the global variable, we come to the main function. There the semaphore is created with a call to semget, which returns the semaphore ID. If the program is the rst to be called (i.e. it's called with a parameter and argc > 1), a call is made to set_semvalue to initialize the semaphore and op_char is set to X. [./sem & ./sem1]*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/ipc.h>
@@ -21,18 +21,6 @@ union semun{
   unsigned short *array;
 };
 
-void f1(int s1, int s2) {
-    if (!semaphore_p(s1)) exit(EXIT_FAILURE);  // lock
-    f2(s1,s2);
-    if (!semaphore_v(s1)) exit(EXIT_FAILURE);  // unlock
-}
-
-void f2(int s1, int s2) {
-    if (!semaphore_p(s2)) exit(EXIT_FAILURE);  // lock
-    f1(s1,s2);
-    if (!semaphore_v(s2)) exit(EXIT_FAILURE);  // unlock
-}
-
 int main(int argc, char *argv[]) {
   int child;
   int s1 = semget((key_t)1234, 1, 0666 | IPC_CREAT);  // get semaphore id
@@ -45,14 +33,10 @@ int main(int argc, char *argv[]) {
 
   if(child) {
     f1(s1,s2);
-
   } else {
     f2(s2,s1);
-
   }
   printf("\n%d - Doned\n", getpid());
-
-  //if (!semaphore_p()) exit(EXIT_FAILURE);  // lock
 
   del_semvalue(s1); // delete or remove semaphore
   del_semvalue(s2);
@@ -100,4 +84,22 @@ static int semaphore_v(int sem_id) {
     return (0);
   }
   return (1);
+}
+
+void f1(int s1, int s2) {
+    if(child) {
+        //if (!semaphore_p(s1)) exit(EXIT_FAILURE);  // lock
+        f2(s1,s2);
+        //if (!semaphore_v(s1)) exit(EXIT_FAILURE);  // unlock        
+    }
+    
+}
+
+void f2(int s1, int s2) {
+    if(!child) {
+        //if (!semaphore_p(s2)) exit(EXIT_FAILURE);  // lock
+        f1(s1,s2);
+        //if (!semaphore_v(s2)) exit(EXIT_FAILURE);  // unlock        
+    }
+    
 }
